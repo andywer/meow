@@ -12,7 +12,7 @@ const normalizePackageData = require('normalize-package-data');
 
 // Prevent caching of this module so module.parent is always accurate
 delete require.cache[__filename];
-const parentDir = path.dirname(module.parent.filename);
+const parentDir = module.parent ? path.dirname(module.parent.filename) : null;
 
 const isFlagMissing = (flagName, definedFlags, receivedFlags, input) => {
 	const flag = definedFlags[flagName];
@@ -89,12 +89,16 @@ const meow = (helpText, options) => {
 		options = helpText;
 		helpText = '';
 	}
-
-	options = {
-		pkg: readPkgUp.sync({
+	
+	const packageJson = parentDir
+		? readPkgUp.sync({
 			cwd: parentDir,
 			normalize: false
-		}).packageJson || {},
+		}).packageJson
+		: null;
+
+	options = {
+		pkg: packageJson || {},
 		argv: process.argv.slice(2),
 		flags: {},
 		inferType: false,
